@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <title>AI_TEXT 手册预览</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      display: flex;
+      height: 100vh;
+      color: #111827;
+      background: radial-gradient(circle at top left, #0f172a 0, #020617 40%, #020617 100%);
+    }
+    .sidebar {
+      width: 320px;
+      background: rgba(15, 23, 42, 0.98);
+      backdrop-filter: blur(18px);
+      color: #e5e7eb;
+      padding: 16px 14px 18px;
+      border-right: 1px solid rgba(55, 65, 81, 0.7);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .sidebar-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 4px;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .brand-logo {
+      width: 26px;
+      height: 26px;
+      border-radius: 8px;
+      background: radial-gradient(circle at 20% 0, #38bdf8 0, #1d4ed8 45%, #4f46e5 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.9), 0 12px 30px rgba(15, 23, 42, 0.9);
+    }
+    .brand-logo span {
+      font-size: 14px;
+      font-weight: 700;
+      color: #e5e7eb;
+    }
+    .brand-text-main {
+      font-size: 15px;
+      font-weight: 600;
+    }
+    .brand-text-sub {
+      font-size: 11px;
+      color: #9ca3af;
+    }
+    .badge {
+      padding: 2px 7px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.6);
+      font-size: 10px;
+      color: #e5e7eb;
+      background: radial-gradient(circle at top, rgba(148, 163, 184, 0.4), rgba(15, 23, 42, 0.4));
+    }
+    .search {
+      position: relative;
+      margin-bottom: 6px;
+    }
+    .search input {
+      width: 100%;
+      padding: 7px 8px 7px 26px;
+      border-radius: 8px;
+      border: 1px solid rgba(55, 65, 81, 0.9);
+      background: rgba(15, 23, 42, 0.9);
+      color: #e5e7eb;
+      font-size: 12px;
+      outline: none;
+      transition: border-color 0.16s ease, box-shadow 0.16s ease, background 0.16s ease;
+    }
+    .search input::placeholder {
+      color: #6b7280;
+    }
+    .search input:focus {
+      border-color: #3b82f6;
+      background: rgba(15, 23, 42, 0.98);
+      box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.6);
+    }
+    .search-icon {
+      position: absolute;
+      left: 8px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 12px;
+      height: 12px;
+      color: #6b7280;
+    }
+    .sidebar-body {
+      flex: 1;
+      overflow-y: auto;
+      padding-right: 4px;
+      margin-right: -4px;
+    }
+    .sidebar-body::-webkit-scrollbar {
+      width: 6px;
+    }
+    .sidebar-body::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .sidebar-body::-webkit-scrollbar-thumb {
+      background: rgba(55, 65, 81, 0.9);
+      border-radius: 999px;
+    }
+    .group {
+      margin-bottom: 14px;
+    }
+    .group-title {
+      font-size: 12px;
+      font-weight: 600;
+      color: #9ca3af;
+      margin-bottom: 6px;
+      text-transform: none;
+      letter-spacing: 0.02em;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .group-title-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 999px;
+      background: linear-gradient(to right, #4f46e5, #22c55e);
+      box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.9);
+    }
+    .file-list {
+      list-style: none;
+    }
+    .file-list li {
+      margin-bottom: 3px;
+    }
+    .file-link {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 8px;
+      font-size: 12px;
+      color: #e5e7eb;
+      text-decoration: none;
+      border-radius: 6px;
+      border: 1px solid transparent;
+      transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease, transform 0.08s ease;
+      cursor: pointer;
+    }
+    .file-icon {
+      width: 14px;
+      height: 14px;
+      border-radius: 4px;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(55, 65, 81, 0.9);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 9px;
+      color: #9ca3af;
+    }
+    .file-name {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .file-list li.active .file-link {
+      background: linear-gradient(90deg, #1d4ed8, #4f46e5);
+      border-color: rgba(59, 130, 246, 0.9);
+      box-shadow: 0 10px 25px rgba(15, 23, 42, 0.75);
+      transform: translateY(-0.5px);
+    }
+    .file-list li.active .file-icon {
+      background: rgba(15, 23, 42, 0.9);
+      color: #e5e7eb;
+      border-color: transparent;
+    }
+    .file-link:hover {
+      background: rgba(31, 41, 55, 0.95);
+      border-color: rgba(55, 65, 81, 0.9);
+      transform: translateY(-0.5px);
+    }
+    .file-list li.active .file-link:hover {
+      background: linear-gradient(90deg, #1d4ed8, #4f46e5);
+    }
+    .main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background: radial-gradient(circle at top right, #1e293b 0, #020617 40%);
+    }
+    .main-header {
+      padding: 9px 12px;
+      border-bottom: 1px solid rgba(31, 41, 55, 0.9);
+      color: #e5e7eb;
+      font-size: 13px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .main-header-title {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .main-header-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: radial-gradient(circle at center, #22c55e, #16a34a);
+      box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.9);
+    }
+    .main-header .path {
+      color: #9ca3af;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 11px;
+      background: rgba(15, 23, 42, 0.9);
+      border-radius: 999px;
+      padding: 3px 8px;
+      border: 1px solid rgba(31, 41, 55, 0.9);
+      max-width: 60%;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .open-link {
+      color: #e5e7eb;
+      font-size: 11px;
+      text-decoration: none;
+      border: 1px solid rgba(55, 65, 81, 0.9);
+      border-radius: 999px;
+      padding: 3px 10px;
+      background: rgba(15, 23, 42, 0.9);
+    }
+    .open-link:hover {
+      background: rgba(31, 41, 55, 0.95);
+      border-color: rgba(75, 85, 99, 0.95);
+    }
+    .main-body {
+      flex: 1;
+      padding: 10px;
+    }
+    .preview-card {
+      width: 100%;
+      height: 100%;
+      border-radius: 14px;
+      background: radial-gradient(circle at top left, #111827 0, #020617 55%);
+      border: 1px solid rgba(31, 41, 55, 0.95);
+      box-shadow:
+        0 20px 45px rgba(15, 23, 42, 1),
+        0 0 0 1px rgba(15, 23, 42, 0.9);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    iframe {
+      flex: 1;
+      width: 100%;
+      border: none;
+      background: white;
+    }
+    .empty {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #9ca3af;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <div class="brand">
+        <div class="brand-logo"><span>AI</span></div>
+        <div>
+          <div class="brand-text-main">破局行动 · 手册库</div>
+          <div class="brand-text-sub">本地 HTML 预览面板</div>
+        </div>
+      </div>
+      <div class="badge">Static</div>
+    </div>
+    <div class="search">
+      <span class="search-icon">
+        <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M9.16667 3.33331C5.945 3.33331 3.33333 5.94498 3.33333 9.16665C3.33333 12.3883 5.945 15 9.16667 15C12.3883 15 15 12.3883 15 9.16665C15 5.94498 12.3883 3.33331 9.16667 3.33331ZM2.5 9.16665C2.5 5.48475 5.48477 2.49998 9.16667 2.49998C12.8486 2.49998 15.8333 5.48475 15.8333 9.16665C15.8333 10.7932 15.2862 12.2903 14.3631 13.491L17.6026 16.7305C17.7639 16.8918 17.7639 17.1541 17.6026 17.3154C17.4413 17.4767 17.179 17.4767 17.0177 17.3154L13.7781 14.0758C12.5774 14.999 11.0803 15.546 9.45379 15.546C5.77189 15.546 2.78712 12.5612 2.78712 8.87931H2.5V9.16665Z" fill="currentColor" />
+        </svg>
+      </span>
+      <input
+        type="text"
+        placeholder="这里暂时只是装饰搜索框（后续可做真实过滤）"
+        disabled
+      />
+    </div>
+    <div class="sidebar-body">
+      <div class="group">
+  <div class="group-title">
+    <span class="group-title-dot"></span>
+    <span>2024年4月破局行动</span>
+  </div>
+  <ul class="file-list">
+    <li class="">
+  <a class="file-link" href="17.html" target="_self">
+    <span class="file-icon">H</span>
+    <span class="file-name">AI+社群运营_10_20260313_185118_162</span>
+  </a>
+</li><li class="">
+  <a class="file-link" href="23.html" target="_self">
+    <span class="file-icon">H</span>
+    <span class="file-name">视频号IP（口播方向）_9_20260313_185044_252</span>
+  </a>
+</li><li class="">
+  <a class="file-link" href="14.html" target="_self">
+    <span class="file-icon">H</span>
+    <span class="file-name">AI+小红书实战_8_20260313_185010_457</span>
+  </a>
+</li><li class="">
+  <a class="file-link" href="15.html" target="_self">
+    <span class="file-icon">H</span>
+    <span class="file-name">AI+教育_7_20260313_184936_688</span>
+  </a>
+</li><li class="">
+  <a class="file-link" href="19.html" target="_self">
+    <span class="file-icon">H</span>
+    <span class="file-name">AI数字人_6_20260313_184902_715</span>
+  </a>
+</li><li class="">
+  <a class="file-link" href="18.html" target="_self">
+    <span class="file-icon">H</span>
+    <span class="file-name">AI代写_5_20260313_184828_959</span>
+  </a>
+</li><li class="">
+  <a class="file-link" href="16.html" target="_self">
+    <span class="file-icon">H</span>
+    <span class="file-name">AI+电商_4_20260313_184755_249</span>
+  </a>
+</li><li class="">
+  <a class="file-link" href="21.html" target="_self">
+    <span class="file-icon">H</span>
+    <span class="file-name">AI视频（含Sora科普+AIP方向）_3_20260313_184721_297</span>
+  </a>
+</li><li class="">
+  <a class="file-link" href="22.html" target="_self">
+    <span class="file-icon">H</span>
+    <span class="file-name">TikTok海外短剧_2_20260313_184647_105</span>
+  </a>
+</li><li class="">
+  <a class="file-link" href="20.html" target="_self">
+    <span class="file-icon">H</span>
+    <span class="file-name">AI爆文出海_1_20260313_184613_194</span>
+  </a>
+</li>
+  </ul>
+</div><div class="group">
+  <div class="group-title">
+    <span class="group-title-dot"></span>
+    <span>2024年7月破局行动</span>
+  </div>
+  <ul class="file-list">
+    <li class="">
+  <a class="file-link" href="31.html" target="_self">
+    <span class="file-icon">H</span>
+    <span class="file-name">AI视频_10_20260313_184538_534</span>
+  </a>
+</li><li class="">
+  <a class="file-link" href="33.html" target="_self">
+    <span class="file-icon">H</span>
+    <span class="file-name">视频号AIP带货直播_9_20260313_184504_604</span>
+  </a>
+</li><li class="">
+  <a class="file-link" href="30.html" target="_self">
+    <span class="file-icon">H</span>
+    <span class="file-name">AI绘画（含热门comfy UI工作流）_8_20260313_184430_673</span>
+  </a>
+</li><li class="">
+  <a class="file-link" href="29.html" target="_self">
+    <span class="file-icon">H</span>
+    <span class="file-name">AI智能体（Coze）_7_20260313_184356_504</span>
+  </a>
+</li><li class="">
+  <a class="file-link" href="28.html" target="_self">
+    <span class="file-icon">H</span>
+    <span class="file-name">AI数字人（含带货）_6_20260313_184321_230</span>
+  </a>
+</li><li class="">
+  <a class="file-link" href="27.html" target="_self">
+    <span class="file-icon">H</span>
+    <span class="file-name">AI提示词_5_20260313_184247_474</span>
+  </a>
+</li><li class="">
+  <a class="file-link" href="32.html" target="_self">
+    <span class="file-icon">H</span>
+    <span class="file-name">个人成长优势挖掘_4_20260313_184213_496</span>
+  </a>
+</li><li class="">
+  <a class="file-link" href="25.html" target="_self">
+    <span class="file-icon">H</span>
+    <span class="file-name">AI大模型应用开发_3_20260313_184138_730</span>
+  </a>
+</li><li class="">
+  <a class="file-link" href="26.html" target="_self">
+    <span class="file-icon">H</span>
+    <span class="file-name">AI拆书_2_20260313_184104_814</span>
+  </a>
+</li><li class="">
+  <a class="file-link" href="24.html" target="_self">
+    <span class="file-icon">H</span>
+    <span class="file-name">AI+企业培训_1_20260313_184030_759</span>
+  </a>
+</li>
+  </ul>
+</div><div class="group">
+  <div class="group-title">
+    <span class="group-title-dot"></span>
+    <span>2024年10月破局行动</span>
+  </div>
+  <ul class="file-list">
+    <li class="">
+  <a class="file-link" href="7.html" target="_self">
+    <span class="file-icon">H</span>
+    <span class="file-name">AI矩阵+小绿书图文带货变现_10_20260313_183955_860</span>
+  </a>
+</li><li class="">
+  <a class="file-link" href="2.html" target="_self">
+    <span class="file-icon">H</span>
+    <span class="file-name">AI公众号爆文矩阵变现_9_20260313_183922_069</span>
+  </a>
+</li><li class="">
+  <a class="file-link" href="0.html" target="_self">
+    <span class="file-icon">H</span>
+    <span class="file-name">AI 小红书引流低粉高变现_8_20260313_183847_959</span>
+  </a>
+</li><li class="">
+  <a class="file-link" href="3.html" target="_self">
+    <span class="file-icon">H</span>
+    <span class="file-name">AI写作变现（写手端交付）_7_20260313_183814_056</span>
+  </a>
+</li><li class="">
+  <a class="file-link" href="4.html" target="_self">
+    <span class="file-icon">H</span>
+    <span class="file-name">AI写作变现（流量获客）_6_20260313_183739_851</span>
+  </a>
+</li><li class="">
+  <a class="file-link" href="9.html" target="_self">
+    <span class="file-icon">H</span>
+    <span class="file-name">RPA+Agent 自媒体内容创作_5_20260313_183705_972</span>
+  </a>
+</li><li class="">
+  <a class="file-link" href="6.html" target="_self">
+    <span class="file-icon">H</span>
+    <span class="file-name">AI极速赋能编程（含Cursor）_4_20260313_183631_843</span>
+  </a>
+</li><li class="">
+  <a class="file-link" href="5.html" target="_self">
+    <span class="file-icon">H</span>
+    <span class="file-name">AI智能体（私人提效工具）_3_20260313_183557_954</span>
+  </a>
+</li><li class="">
+  <a class="file-link" href="8.html" target="_self">
+    <span class="file-icon">H</span>
+    <span class="file-name">AI视频（商单+自媒体方向）_2_20260313_183524_172</span>
+  </a>
+</li><li class="">
+  <a class="file-link" href="1.html" target="_self">
+    <span class="file-icon">H</span>
+    <span class="file-name">AI 绘画特训_1_20260313_183450_242</span>
+  </a>
+</li>
+  </ul>
+</div><div class="group">
+  <div class="group-title">
+    <span class="group-title-dot"></span>
+    <span>2024年12月破局行动</span>
+  </div>
+  <ul class="file-list">
+    <li class="">
+  <a class="file-link" href="13.html" target="_self">
+    <span class="file-icon">H</span>
+    <span class="file-name">视频号AIP直播打造_4_20260313_182308_526</span>
+  </a>
+</li><li class="">
+  <a class="file-link" href="12.html" target="_self">
+    <span class="file-icon">H</span>
+    <span class="file-name">AI短视频自媒体AIP打造（含shorts)_3_20260313_182234_269</span>
+  </a>
+</li><li class="">
+  <a class="file-link" href="10.html" target="_self">
+    <span class="file-icon">H</span>
+    <span class="file-name">AI公众号自媒体AIP打造_2_20260313_182200_447</span>
+  </a>
+</li><li class="">
+  <a class="file-link" href="11.html" target="_self">
+    <span class="file-icon">H</span>
+    <span class="file-name">AI小红书自媒体AIP打造_1_20260313_182126_426</span>
+  </a>
+</li>
+  </ul>
+</div><div class="group">
+  <div class="group-title">
+    <span class="group-title-dot"></span>
+    <span>2025年3月破局行动</span>
+  </div>
+  <ul class="file-list">
+    <li class="">
+  <a class="file-link" href="53.html" target="_self">
+    <span class="file-icon">H</span>
+    <span class="file-name">小红书代写聚光投放_10_20260313_182051_206</span>
+  </a>
+</li><li class="">
+  <a class="file-link" href="44.html" target="_self">
+    <span class="file-icon">H</span>
+    <span class="file-name">AI企培讲师打造_9_20260313_182016_849</span>
+  </a>
+</li><li class="">
+  <a class="file-link" href="49.html" target="_self">
+    <span class="file-icon">H</span>
+    <span class="file-name">AI视频流量出海赚美金_8_20260313_181942_398</span>
+  </a>
+</li><li class="">
+  <a class="file-link" href="47.html" target="_self">
+    <span class="file-icon">H</span>
+    <span class="file-name">AI增长营销获客_7_20260313_181908_181</span>
+  </a>
+</li><li class="">
+  <a class="file-link" href="52.html" target="_self">
+    <span class="file-icon">H</span>
+    <span class="file-name">小红书AI虚拟资料变现_6_20260313_181833_926</span>
+  </a>
+</li><li class="">
+  <a class="file-link" href="46.html" target="_self">
+    <span class="file-icon">H</span>
+    <span class="file-name">AI写作变现（流量获客）_5_20260313_181759_962</span>
+  </a>
+</li><li class="">
+  <a class="file-link" href="48.html" target="_self">
+    <span class="file-icon">H</span>
+    <span class="file-name">AI编程极速开发应用_4_20260313_181725_567</span>
+  </a>
+</li><li class="">
+  <a class="file-link" href="51.html" target="_self">
+    <span class="file-icon">H</span>
+    <span class="file-name">【加强版】视频号AI数字人带货_3_20260313_181651_653</span>
+  </a>
+</li><li class="">
+  <a class="file-link" href="50.html" target="_self">
+    <span class="file-icon">H</span>
+    <span class="file-name">「强基版」AIP MCN孵化营_2_20260313_181617_656</span>
+  </a>
+</li><li class="">
+  <a class="file-link" href="45.html" target="_self">
+    <span class="file-icon">H</span>
+    <span class="file-name">AI公众号自媒体AIP打造_1_20260313_181543_112</span>
+  </a>
+</li>
+  </ul>
+</div><div class="group">
+  <div class="group-title">
+    <span class="group-title-dot"></span>
+    <span>2025年6月破局行动</span>
+  </div>
+  <ul class="file-list">
+    <li class="">
+  <a class="file-link" href="59.html" target="_self">
+    <span class="file-icon">H</span>
+    <span class="file-name">AI抖音自然流（含直播）_10_20260313_181507_755</span>
+  </a>
+</li><li class="">
+  <a class="file-link" href="62.html" target="_self">
+    <span class="file-icon">H</span>
+    <span class="file-name">YouTube AI 视频蓝海玩法（限450人）_9_20260313_181433_936</span>
+  </a>
+</li><li class="">
+  <a class="file-link" href="54.html" target="_self">
+    <span class="file-icon">H</span>
+    <span class="file-name">30天打造公众号AIP影响力_8_20260313_181359_847</span>
+  </a>
+</li><li class="">
+  <a class="file-link" href="55.html" target="_self">
+    <span class="file-icon">H</span>
+    <span class="file-name">AI企培全链路增值_7_20260313_181325_488</span>
+  </a>
+</li><li class="">
+  <a class="file-link" href="58.html" target="_self">
+    <span class="file-icon">H</span>
+    <span class="file-name">AI小红书虚拟资料（图文获客）_6_20260313_181250_840</span>
+  </a>
+</li><li class="">
+  <a class="file-link" href="61.html" target="_self">
+    <span class="file-icon">H</span>
+    <span class="file-name">AI赋能高端商业文案_5_20260313_181216_479</span>
+  </a>
+</li><li class="">
+  <a class="file-link" href="63.html" target="_self">
+    <span class="file-icon">H</span>
+    <span class="file-name">【加强版】视频号&抖音AI数字人带货（限1000人）_4_20260313_181142_468</span>
+  </a>
+</li><li class="">
+  <a class="file-link" href="60.html" target="_self">
+    <span class="file-icon">H</span>
+    <span class="file-name">AI数字人营销增长获客_3_20260313_181107_819</span>
+  </a>
+</li><li class="">
+  <a class="file-link" href="56.html" target="_self">
+    <span class="file-icon">H</span>
+    <span class="file-name">AI写作掘金行动-写手端_2_20260313_181033_650</span>
+  </a>
+</li><li class="">
+  <a class="file-link" href="57.html" target="_self">
+    <span class="file-icon">H</span>
+    <span class="file-name">AI写作掘金行动-流量端_1_20260313_180959_669</span>
+  </a>
+</li>
+  </ul>
+</div><div class="group">
+  <div class="group-title">
+    <span class="group-title-dot"></span>
+    <span>2025年8月破局行动</span>
+  </div>
+  <ul class="file-list">
+    <li class="">
+  <a class="file-link" href="68.html" target="_self">
+    <span class="file-icon">H</span>
+    <span class="file-name">AI抖音AIP打造快速入门_10_20260313_180924_320</span>
+  </a>
+</li><li class="">
+  <a class="file-link" href="65.html" target="_self">
+    <span class="file-icon">H</span>
+    <span class="file-name">AI公众号AIP打造快速入门_9_20260313_180850_475</span>
+  </a>
+</li><li class="">
+  <a class="file-link" href="73.html" target="_self">
+    <span class="file-icon">H</span>
+    <span class="file-name">AI高效制作PPT_8_20260313_180816_356</span>
+  </a>
+</li><li class="">
+  <a class="file-link" href="66.html" target="_self">
+    <span class="file-icon">H</span>
+    <span class="file-name">AI助力文案写作_7_20260313_180742_517</span>
+  </a>
+</li><li class="">
+  <a class="file-link" href="70.html" target="_self">
+    <span class="file-icon">H</span>
+    <span class="file-name">AI提效数据分析_6_20260313_180708_704</span>
+  </a>
+</li><li class="">
+  <a class="file-link" href="64.html" target="_self">
+    <span class="file-icon">H</span>
+    <span class="file-name">AI 编程商单写作_5_20260313_180634_564</span>
+  </a>
+</li><li class="">
+  <a class="file-link" href="71.html" target="_self">
+    <span class="file-icon">H</span>
+    <span class="file-name">AI提示词通用版_4_20260313_180600_662</span>
+  </a>
+</li><li class="">
+  <a class="file-link" href="72.html" target="_self">
+    <span class="file-icon">H</span>
+    <span class="file-name">AI知识库搭建_3_20260313_180526_570</span>
+  </a>
+</li><li class="">
+  <a class="file-link" href="67.html" target="_self">
+    <span class="file-icon">H</span>
+    <span class="file-name">AI小程序搭建_2_20260313_180452_779</span>
+  </a>
+</li><li class="">
+  <a class="file-link" href="69.html" target="_self">
+    <span class="file-icon">H</span>
+    <span class="file-name">AI提效制作短视频_1_20260313_180418_907</span>
+  </a>
+</li>
+  </ul>
+</div><div class="group">
+  <div class="group-title">
+    <span class="group-title-dot"></span>
+    <span>2025年9月破局行动</span>
+  </div>
+  <ul class="file-list">
+    <li class="">
+  <a class="file-link" href="80.html" target="_self">
+    <span class="file-icon">H</span>
+    <span class="file-name">AI编程极速开发应用_10_20260313_180343_611</span>
+  </a>
+</li><li class="">
+  <a class="file-link" href="79.html" target="_self">
+    <span class="file-icon">H</span>
+    <span class="file-name">AI爆文（蓝海赛道）_9_20260313_180309_154</span>
+  </a>
+</li><li class="">
+  <a class="file-link" href="81.html" target="_self">
+    <span class="file-icon">H</span>
+    <span class="file-name">AI高端商业计划书_8_20260313_180233_467</span>
+  </a>
+</li><li class="">
+  <a class="file-link" href="75.html" target="_self">
+    <span class="file-icon">H</span>
+    <span class="file-name">AI企培商单营_7_20260313_180159_699</span>
+  </a>
+</li><li class="">
+  <a class="file-link" href="77.html" target="_self">
+    <span class="file-icon">H</span>
+    <span class="file-name">AI写作技能提升_6_20260313_180125_813</span>
+  </a>
+</li><li class="">
+  <a class="file-link" href="82.html" target="_self">
+    <span class="file-icon">H</span>
+    <span class="file-name">RPA+Agent办公自动化_5_20260313_180051_838</span>
+  </a>
+</li><li class="">
+  <a class="file-link" href="74.html" target="_self">
+    <span class="file-icon">H</span>
+    <span class="file-name">AI Temu跨境电商店群实战_4_20260313_180017_601</span>
+  </a>
+</li><li class="">
+  <a class="file-link" href="83.html" target="_self">
+    <span class="file-icon">H</span>
+    <span class="file-name">视频号&抖音AI带货行动营_3_20260313_175943_502</span>
+  </a>
+</li><li class="">
+  <a class="file-link" href="76.html" target="_self">
+    <span class="file-icon">H</span>
+    <span class="file-name">AI公众号自媒体AIP（专业细分）_2_20260313_175909_599</span>
+  </a>
+</li><li class="">
+  <a class="file-link" href="78.html" target="_self">
+    <span class="file-icon">H</span>
+    <span class="file-name">AI写作超级个体_1_20260313_175835_877</span>
+  </a>
+</li>
+  </ul>
+</div><div class="group">
+  <div class="group-title">
+    <span class="group-title-dot"></span>
+    <span>2025年12月破局行动</span>
+  </div>
+  <ul class="file-list">
+    <li class="">
+  <a class="file-link" href="38.html" target="_self">
+    <span class="file-icon">H</span>
+    <span class="file-name">AI视频出海（YouTube&Sora2）_10_20260313_175800_775</span>
+  </a>
+</li><li class="">
+  <a class="file-link" href="39.html" target="_self">
+    <span class="file-icon">H</span>
+    <span class="file-name">coze工作流实战_9_20260313_175726_830</span>
+  </a>
+</li><li class="">
+  <a class="file-link" href="36.html" target="_self">
+    <span class="file-icon">H</span>
+    <span class="file-name">AI简笔画小说推文_8_20260313_175653_057</span>
+  </a>
+</li><li class="">
+  <a class="file-link" href="42.html" target="_self">
+    <span class="file-icon">H</span>
+    <span class="file-name">全域短视频&直播AI带货3.0_7_20260313_175619_026</span>
+  </a>
+</li><li class="">
+  <a class="file-link" href="40.html" target="_self">
+    <span class="file-icon">H</span>
+    <span class="file-name">n8n自动化工作流_6_20260313_175545_126</span>
+  </a>
+</li><li class="">
+  <a class="file-link" href="34.html" target="_self">
+    <span class="file-icon">H</span>
+    <span class="file-name">AI PPT代创作实战_5_20260313_175511_115</span>
+  </a>
+</li><li class="">
+  <a class="file-link" href="35.html" target="_self">
+    <span class="file-icon">H</span>
+    <span class="file-name">AI可研报告_4_20260313_175434_670</span>
+  </a>
+</li><li class="">
+  <a class="file-link" href="43.html" target="_self">
+    <span class="file-icon">H</span>
+    <span class="file-name">抖音DSO虚拟资料_3_20260313_175354_570</span>
+  </a>
+</li><li class="">
+  <a class="file-link" href="37.html" target="_self">
+    <span class="file-icon">H</span>
+    <span class="file-name">AI编程出海做产品_2_20260313_175258_881</span>
+  </a>
+</li><li class="">
+  <a class="file-link" href="41.html" target="_self">
+    <span class="file-icon">H</span>
+    <span class="file-name">X(推特)网盘拉新_1_20260313_175217_938</span>
+  </a>
+</li>
+  </ul>
+</div><div class="group">
+  <div class="group-title">
+    <span class="group-title-dot"></span>
+    <span>2026年2月破局行动</span>
+  </div>
+  <ul class="file-list">
+    <li class="">
+  <a class="file-link" href="87.html" target="_self">
+    <span class="file-icon">H</span>
+    <span class="file-name">新年祝福视频_4_20260313_175130_372</span>
+  </a>
+</li><li class="">
+  <a class="file-link" href="84.html" target="_self">
+    <span class="file-icon">H</span>
+    <span class="file-name">AI新年表情包_3_20260313_175049_895</span>
+  </a>
+</li><li class="active">
+  <a class="file-link" href="85.html" target="_self">
+    <span class="file-icon">H</span>
+    <span class="file-name">Coze Skill_2_20260313_175015_890</span>
+  </a>
+</li><li class="">
+  <a class="file-link" href="86.html" target="_self">
+    <span class="file-icon">H</span>
+    <span class="file-name">代下电影票_1_20260313_174942_489</span>
+  </a>
+</li>
+  </ul>
+</div>
+    </div>
+  </div>
+  <div class="main">
+    <div class="main-header">
+      <div class="main-header-title">
+        <div class="main-header-dot"></div>
+        <div>HTML 预览 · GitHub Pages</div>
+      </div>
+      <a class="open-link" href="https://d16rg8unadx.feishu.cn/docx/G84idT9VAo9Jy4x0IrkcwvgCnYc?opendoc=1&theme=light&doc_app_id=-1&shwm=false&docComponentConfig=%7B%22extensions%22%3A%7B%22modal%22%3A%7B%22outerMask%22%3Atrue%7D%2C%22like%22%3A%7B%22disable%22%3Atrue%7D%2C%22content%22%3A%7B%22scrollbar%22%3A%7B%22enable%22%3Atrue%7D%2C%22readonly%22%3Atrue%2C%22partial%22%3A%7B%22disable%22%3Atrue%7D%2C%22global%22%3A%7B%22disable%22%3Atrue%7D%7D%2C%22suiteNavBar%22%3A%7B%22disable%22%3Atrue%7D%2C%22footer%22%3A%7B%22enable%22%3Afalse%7D%7D%7D&encrypt_jssdk_session=ACwYFkZlYXR1cmVDcmVhdGlvbk9wZW5Eb2MVBha6s4CEiMyvr9MBFoDOmpsNAAAAAQANqXlC%2FKmHKWcUTSNZHIeYyB6Ftogm44baaBZyiT9HWl9cdvnbk%2F2OrruTFsMRo3O%2BX4KQ8z%2FEtU1VTmvYi%2F6knj%2FaoK2FMiHtzowzIMvj2XuW5R4VKfxmOEFWHMbXxUX9S7IOcd5t6mm1emvo%2FaViHladwXfpFlnUIrPVUgB4O8iVSRO7eBDZct64RAgRdcGwPIVoariF07YcUdlzuQZ5F5mJ7Q9xfCV5rs%2FEOYr%2B0UCt0%2BxQQA3WLs0nBqLE1qtK359hT4UftAy1WuChXyDFW0YM1v88fim8Zggad%2F13hg%2BJW4quXQRhsw0Xkch7dHO8s0J6My2PUS9I6z3fo8Bv&feature_config=%7B%7D&auth_config=%7B%22appId%22%3A%22cli_a659002c0478100c%22%7D&mount_start_time=1773395385002" target="_blank" rel="noopener noreferrer">Open in new tab</a>
+      <div class="path">2026年2月破局行动\Coze Skill_2_20260313_175015_890.html</div>
+    </div>
+    <div class="main-body">
+      <div class="preview-card">
+        <iframe src="https://d16rg8unadx.feishu.cn/docx/G84idT9VAo9Jy4x0IrkcwvgCnYc?opendoc=1&theme=light&doc_app_id=-1&shwm=false&docComponentConfig=%7B%22extensions%22%3A%7B%22modal%22%3A%7B%22outerMask%22%3Atrue%7D%2C%22like%22%3A%7B%22disable%22%3Atrue%7D%2C%22content%22%3A%7B%22scrollbar%22%3A%7B%22enable%22%3Atrue%7D%2C%22readonly%22%3Atrue%2C%22partial%22%3A%7B%22disable%22%3Atrue%7D%2C%22global%22%3A%7B%22disable%22%3Atrue%7D%7D%2C%22suiteNavBar%22%3A%7B%22disable%22%3Atrue%7D%2C%22footer%22%3A%7B%22enable%22%3Afalse%7D%7D%7D&encrypt_jssdk_session=ACwYFkZlYXR1cmVDcmVhdGlvbk9wZW5Eb2MVBha6s4CEiMyvr9MBFoDOmpsNAAAAAQANqXlC%2FKmHKWcUTSNZHIeYyB6Ftogm44baaBZyiT9HWl9cdvnbk%2F2OrruTFsMRo3O%2BX4KQ8z%2FEtU1VTmvYi%2F6knj%2FaoK2FMiHtzowzIMvj2XuW5R4VKfxmOEFWHMbXxUX9S7IOcd5t6mm1emvo%2FaViHladwXfpFlnUIrPVUgB4O8iVSRO7eBDZct64RAgRdcGwPIVoariF07YcUdlzuQZ5F5mJ7Q9xfCV5rs%2FEOYr%2B0UCt0%2BxQQA3WLs0nBqLE1qtK359hT4UftAy1WuChXyDFW0YM1v88fim8Zggad%2F13hg%2BJW4quXQRhsw0Xkch7dHO8s0J6My2PUS9I6z3fo8Bv&feature_config=%7B%7D&auth_config=%7B%22appId%22%3A%22cli_a659002c0478100c%22%7D&mount_start_time=1773395385002" title="HTML 预览"></iframe>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
