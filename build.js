@@ -82,7 +82,7 @@ function build() {
     getFileById,
     targetPath: path.join(outDir, 'index.html'),
     buildViewHref: (f) => `view/${f.id}.html`,
-    buildRawHref: (f) => `raw/${f.id}.html`,
+    buildRawHref: (f) => f.preferredPreviewUrl || `raw/${f.id}.html`,
   });
 
   for (const file of files) {
@@ -92,7 +92,7 @@ function build() {
       getFileById,
       targetPath: path.join(viewDir, `${file.id}.html`),
       buildViewHref: (f) => `${f.id}.html`,
-      buildRawHref: (f) => `../raw/${f.id}.html`,
+      buildRawHref: (f) => f.preferredPreviewUrl || `../raw/${f.id}.html`,
     });
   }
 
